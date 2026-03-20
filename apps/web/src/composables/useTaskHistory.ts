@@ -43,20 +43,28 @@ export function useTaskHistory(options: UseTaskHistoryOptions = {}) {
   const error = ref("");
   const selectedTaskId = ref(options.initialSelectedTaskId ?? "");
   let inFlightRefresh: Promise<RecentTaskItem[]> | null = null;
+  let visibleRefreshWaiters = 0;
+
+  function trackRefreshLoading(task: Promise<RecentTaskItem[]>, shouldShowLoading: boolean) {
+    if (!shouldShowLoading) {
+      return task;
+    }
+
+    visibleRefreshWaiters += 1;
+    loading.value = true;
+
+    return task.finally(() => {
+      visibleRefreshWaiters = Math.max(0, visibleRefreshWaiters - 1);
+      loading.value = visibleRefreshWaiters > 0;
+    });
+  }
 
   async function refresh(refreshOptions: RefreshTaskHistoryOptions = {}) {
     const silent = Boolean(refreshOptions.silent);
     const shouldShowLoading = !silent;
 
     if (inFlightRefresh) {
-      if (shouldShowLoading) {
-        loading.value = true;
-      }
-      return inFlightRefresh;
-    }
-
-    if (shouldShowLoading) {
-      loading.value = true;
+      return trackRefreshLoading(inFlightRefresh, shouldShowLoading);
     }
 
     const task = (async () => {
@@ -70,10 +78,6 @@ export function useTaskHistory(options: UseTaskHistoryOptions = {}) {
         error.value = "";
       } catch (caughtError) {
         error.value = caughtError instanceof Error ? caughtError.message : "读取最近任务失败";
-      } finally {
-        if (shouldShowLoading) {
-          loading.value = false;
-        }
       }
 
       return items.value;
@@ -86,7 +90,7 @@ export function useTaskHistory(options: UseTaskHistoryOptions = {}) {
       }
     });
 
-    return task;
+    return trackRefreshLoading(task, shouldShowLoading);
   }
 
   async function selectTask(task: string | RecentTaskItem) {
