@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+.codex-logs/
+.DS_Store
+*.log
+
+uploads/
+outputs/
+data/
+
+.env
+.env.local
+.env.*.local

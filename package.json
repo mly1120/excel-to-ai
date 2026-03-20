@@ -1,0 +1,14 @@
+{
+  "name": "excel-to-ai",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev:web": "pnpm --filter @excel-to-ai/web dev",
+    "dev:server": "pnpm --filter @excel-to-ai/server dev",
+    "build:web": "pnpm --filter @excel-to-ai/web build",
+    "build:server": "pnpm --filter @excel-to-ai/server build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @excel-to-ai/server test"
+  }
+}
