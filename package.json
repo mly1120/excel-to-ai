@@ -9,6 +9,6 @@
     "build:web": "pnpm --filter @excel-to-ai/web build",
     "build:server": "pnpm --filter @excel-to-ai/server build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter @excel-to-ai/server test"
+    "test": "pnpm -r --if-present test"
   }
 }
