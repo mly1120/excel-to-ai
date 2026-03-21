@@ -1,4 +1,5 @@
 export type WorkbenchSectionKey = "workspace" | "templates" | "history";
+export type WorkbenchMode = "dashboard" | "draft" | "running" | "result";
 
 export type WorkbenchNavSection = {
   key: WorkbenchSectionKey;
@@ -35,6 +36,14 @@ export type ScenarioPromptChip = {
 
 export type WorkbenchCatalog = {
   navigation: WorkbenchNavSection[];
+  modeSectionRules: Record<
+    WorkbenchMode,
+    {
+      suggestedSection: WorkbenchSectionKey;
+      mainSection: WorkbenchSectionKey;
+      copilotSection: WorkbenchSectionKey;
+    }
+  >;
   capabilityGroups: CapabilityGroup[];
   scenarioPromptChips: ScenarioPromptChip[];
   suggestedNextPrompts: string[];
@@ -60,6 +69,28 @@ export const workbenchCatalog: WorkbenchCatalog = {
       description: "查看并切换最近执行过的任务结果。",
     },
   ],
+  modeSectionRules: {
+    dashboard: {
+      suggestedSection: "templates",
+      mainSection: "workspace",
+      copilotSection: "templates",
+    },
+    draft: {
+      suggestedSection: "workspace",
+      mainSection: "workspace",
+      copilotSection: "workspace",
+    },
+    running: {
+      suggestedSection: "workspace",
+      mainSection: "workspace",
+      copilotSection: "workspace",
+    },
+    result: {
+      suggestedSection: "workspace",
+      mainSection: "workspace",
+      copilotSection: "workspace",
+    },
+  },
   capabilityGroups: [
     {
       key: "cleanup",

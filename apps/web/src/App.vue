@@ -53,8 +53,19 @@ const recentTasks = computed(() => taskHistory.items.value);
 const historyLoading = computed(() => taskHistory.loading.value);
 const historyError = computed(() => taskHistory.error.value);
 const selectedTaskId = computed(() => taskHistory.selectedTaskId.value);
+const navigationAreaSection = computed(() => navigation.areaSection.value);
 const dashboardCapabilityGroups = computed(() => workbenchCatalog.capabilityGroups);
 const dashboardScenarioPromptChips = computed(() => workbenchCatalog.scenarioPromptChips);
+const copilotTemplatePrompts = computed(() =>
+  dashboardScenarioPromptChips.value.map((item) => item.prompt),
+);
+const copilotSuggestedPrompts = computed(() => {
+  const source =
+    navigationAreaSection.value.copilot === "templates"
+      ? copilotTemplatePrompts.value
+      : suggestedNextPrompts.value;
+  return Array.from(new Set(source));
+});
 
 const railColumnRef = ref<HTMLElement | null>(null);
 const mainColumnRef = ref<HTMLElement | null>(null);
@@ -254,9 +265,11 @@ const previewTitle = computed(() =>
 );
 
 const previewNote = computed(() =>
-  taskState.taskResult
-    ? "上方始终保留原始预览；右上角可切换结果视图。"
-    : "先看预览，再在右侧描述要处理的动作。",
+  navigationAreaSection.value.main === "templates"
+    ? "当前定位在模板入口，可先在右侧选择提示词，再回到预览继续处理。"
+    : taskState.taskResult
+      ? "上方始终保留原始预览；右上角可切换结果视图。"
+      : "先看预览，再在右侧描述要处理的动作。",
 );
 
 const planActions = computed(() =>
@@ -459,6 +472,7 @@ function collectImpactedColumns(operations: Operation[]) {
       <aside
         ref="railColumnRef"
         class="workbench-column workbench-column--rail"
+        :data-active-section="navigationAreaSection.rail"
         data-workbench-area="rail"
       >
         <WorkbenchSidebar
@@ -480,6 +494,7 @@ function collectImpactedColumns(operations: Operation[]) {
       <main
         ref="mainColumnRef"
         class="workbench-column workbench-column--main"
+        :data-active-section="navigationAreaSection.main"
         data-workbench-area="main"
       >
         <EmptyDashboard
@@ -544,6 +559,7 @@ function collectImpactedColumns(operations: Operation[]) {
       <aside
         ref="copilotColumnRef"
         class="workbench-column workbench-column--copilot"
+        :data-active-section="navigationAreaSection.copilot"
         data-workbench-area="copilot"
       >
         <AiCopilotPanel
@@ -561,7 +577,7 @@ function collectImpactedColumns(operations: Operation[]) {
           :plan-warnings="planState.warnings"
           :request-text="chatState.input"
           :sheet-name="session.selectedSheet"
-          :suggested-next-prompts="suggestedNextPrompts"
+          :suggested-next-prompts="copilotSuggestedPrompts"
           :templates="chatState.requestTemplates"
           :workspace-mode="workspaceMode"
           @choose-template="actions.applyTemplate"
