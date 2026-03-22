@@ -23,10 +23,10 @@ import {
 type HeaderPrimaryKind = "download" | "refresh" | "execute" | "plan" | "none";
 
 const modeLabelMap: Record<WorkspaceMode, string> = {
-  dashboard: "等待开始",
-  draft: "准备执行",
-  running: "执行中",
-  result: "结果可回看",
+  dashboard: "上传文件",
+  draft: "生成建议",
+  running: "查看进度",
+  result: "继续处理",
 };
 
 const {
@@ -150,13 +150,13 @@ const canExecutePlan = computed(
 const headerDescription = computed(() => {
   switch (workspaceMode.value) {
     case "dashboard":
-      return "先上传 Excel，选定工作表后就能开始输入处理需求。";
+      return "上传 Excel，选好工作表后直接输入处理目标。";
     case "draft":
-      return "先核对中间预览，再在右侧输入需求并生成 AI 建议。";
+      return "先看预览，再生成本轮 AI 建议。";
     case "running":
-      return "任务执行中；你可以继续看预览，并按需刷新状态。";
+      return "先盯住预览，再按需刷新执行状态。";
     case "result":
-      return "先看结果预览和失败记录，确认后下载结果文件。";
+      return "先看结果，再决定继续处理还是下载。";
   }
 });
 
@@ -164,12 +164,12 @@ const headerStats = computed(() => [
   {
     label: "当前模式",
     value: modeLabelMap[workspaceMode.value],
-    hint: session.fileName ? `文件：${session.fileName}` : "先上传文件",
+    hint: session.fileName ? `当前文件：${session.fileName}` : "上传后开始处理",
   },
   {
     label: "AI 建议",
     value: planState.operationCount ? `${planState.operationCount} 个动作` : "待生成",
-    hint: planState.warnings.length ? `${planState.warnings.length} 条提醒` : "输入需求后生成建议",
+    hint: planState.warnings.length ? `${planState.warnings.length} 条提醒待确认` : "输入目标后生成建议",
   },
   {
     label: "任务结果",
@@ -178,12 +178,12 @@ const headerStats = computed(() => [
       : taskState.isTaskInProgress
         ? "正在执行"
         : "待执行",
-    hint: taskState.latestTaskId ? `任务：${taskState.latestTaskId}` : "先确认执行",
+    hint: taskState.latestTaskId ? `任务：${taskState.latestTaskId}` : "生成建议后执行",
   },
   {
     label: "最近任务",
     value: recentTasks.value.length,
-    hint: recentTasks.value.length ? "去左侧切换查看" : "执行后会出现在左侧",
+    hint: recentTasks.value.length ? "去左侧切换恢复" : "执行后会出现在左侧",
   },
 ]);
 
@@ -267,10 +267,10 @@ const previewTitle = computed(() =>
 
 const previewNote = computed(() =>
   navigationAreaSection.value.main === "templates"
-    ? "当前定位在模板入口，可先在右侧选择提示词，再回到预览继续处理。"
+    ? "先在右侧挑一句模板，再回到预览继续处理。"
     : taskState.taskResult
-      ? "上方始终保留原始预览；右上角可切换结果视图。"
-      : "先看预览，再在右侧描述要处理的动作。",
+      ? "上方保留原始预览，右上角切换结果视图。"
+      : "先看预览，再在右侧生成建议。",
 );
 
 const planActions = computed(() =>
