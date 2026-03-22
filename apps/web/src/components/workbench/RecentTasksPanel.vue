@@ -8,6 +8,7 @@ type Props = {
   selectedTaskId?: string;
   loading?: boolean;
   error?: string | null;
+  compact?: boolean;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedTaskId: "",
   loading: false,
   error: null,
+  compact: false,
 });
 
 const emit = defineEmits<{
@@ -38,10 +40,10 @@ const statusClassMap: Record<TaskStatus, string> = {
   failed: "recent-tasks-panel__status--failed",
 };
 
-const previewLimit = 3;
+const previewLimit = computed(() => (props.compact ? 4 : 3));
 const isExpanded = ref(false);
 
-const previewItems = computed(() => props.items.slice(0, previewLimit));
+const previewItems = computed(() => props.items.slice(0, previewLimit.value));
 const visibleItems = computed(() => (isExpanded.value ? props.items : previewItems.value));
 
 const hiddenCount = computed(() => Math.max(props.items.length - previewItems.value.length, 0));
@@ -75,14 +77,16 @@ function summarizeResult(item: RecentTaskItem) {
 </script>
 
 <template>
-  <section class="recent-tasks-panel">
+  <section :class="['recent-tasks-panel', { 'recent-tasks-panel--compact': compact }]">
     <header class="recent-tasks-panel__header">
       <div class="recent-tasks-panel__heading">
-        <p class="recent-tasks-panel__eyebrow">最近任务</p>
-        <h3 class="recent-tasks-panel__title">任务回看</h3>
-        <p class="recent-tasks-panel__hint">轻量回看，点击后在中栏查看完整结果。</p>
+        <p v-if="!compact" class="recent-tasks-panel__eyebrow">最近任务</p>
+        <h3 class="recent-tasks-panel__title">{{ compact ? "任务历史" : "任务回看" }}</h3>
+        <p v-if="!compact" class="recent-tasks-panel__hint">轻量回看，点击后在中栏查看完整结果。</p>
       </div>
-      <el-button :loading="loading" plain size="small" @click="emit('refresh')">刷新</el-button>
+      <el-button :loading="loading" plain size="small" @click="emit('refresh')">
+        {{ compact ? "更新" : "刷新" }}
+      </el-button>
     </header>
 
     <div class="recent-tasks-panel__body">
@@ -163,6 +167,32 @@ function summarizeResult(item: RecentTaskItem) {
 .recent-tasks-panel {
   display: grid;
   gap: 10px;
+}
+
+.recent-tasks-panel--compact {
+  gap: 8px;
+}
+
+.recent-tasks-panel--compact .recent-tasks-panel__header {
+  gap: 8px;
+}
+
+.recent-tasks-panel--compact .recent-tasks-panel__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.recent-tasks-panel--compact .recent-tasks-panel__item {
+  padding: 8px 9px;
+}
+
+.recent-tasks-panel--compact .recent-tasks-panel__file {
+  font-size: 12px;
+}
+
+.recent-tasks-panel--compact .recent-tasks-panel__meta {
+  margin-top: 6px;
 }
 
 .recent-tasks-panel__header {

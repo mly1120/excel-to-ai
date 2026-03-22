@@ -54,6 +54,7 @@ const historyLoading = computed(() => taskHistory.loading.value);
 const historyError = computed(() => taskHistory.error.value);
 const selectedTaskId = computed(() => taskHistory.selectedTaskId.value);
 const navigationAreaSection = computed(() => navigation.areaSection.value);
+const historySectionActive = computed(() => navigation.activeSection.value === "history");
 const dashboardCapabilityGroups = computed(() => workbenchCatalog.capabilityGroups);
 const dashboardScenarioPromptChips = computed(() => workbenchCatalog.scenarioPromptChips);
 const copilotTemplatePrompts = computed(() =>
@@ -485,6 +486,7 @@ function collectImpactedColumns(operations: Operation[]) {
           :sections="navigation.availableSections.value"
           :sheet-name="session.selectedSheet"
           :suggested-section="navigation.suggestedSection.value"
+          :history-section-active="historySectionActive"
           @refresh-recent="handleRefreshRecentTasks"
           @select-section="handleSelectSection"
           @select-task="handleOpenTask"
