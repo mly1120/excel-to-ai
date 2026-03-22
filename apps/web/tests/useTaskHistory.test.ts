@@ -42,7 +42,7 @@ describe("useTaskHistory", () => {
     return state;
   }
 
-  it("keeps loading off for silent refresh and falls back after manual refresh joins in-flight call", async () => {
+  it("shares the in-flight refresh result and drops loading after a manual refresh joins a silent refresh", async () => {
     let resolveFetch: ((items: RecentTaskItem[]) => void) | null = null;
     const taskItems: RecentTaskItem[] = [
       {
@@ -80,9 +80,11 @@ describe("useTaskHistory", () => {
     }
     resolveFetch(taskItems);
 
-    await Promise.all([silentRefresh, manualRefresh]);
+    const [silentItems, manualItems] = await Promise.all([silentRefresh, manualRefresh]);
     await nextTick();
 
+    expect(silentItems).toEqual(taskItems);
+    expect(manualItems).toEqual(taskItems);
     expect(composable.loading.value).toBe(false);
     expect(composable.error.value).toBe("");
     expect(composable.items.value).toEqual(taskItems);
