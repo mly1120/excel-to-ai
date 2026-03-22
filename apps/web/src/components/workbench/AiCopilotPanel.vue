@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import PromptComposer, { type PromptComposerMode } from "./PromptComposer.vue";
 import SuggestedNextActions from "./SuggestedNextActions.vue";
@@ -142,11 +142,11 @@ const panelMode = computed<WorkspaceMode>(() => {
 });
 
 const planCardStatus = computed<PlanChecklistStatus>(() => {
-  if (panelMode.value === "result" && (props.planSummary || props.planActions.length)) {
-    return "done";
+  if (panelMode.value === "result") {
+    return /失败/.test(resolvedExecutionSummaryText.value) ? "failed" : "done";
   }
 
-  if (panelMode.value === "running" && (props.planSummary || props.planActions.length)) {
+  if (panelMode.value === "running") {
     return "running";
   }
 
@@ -219,6 +219,22 @@ const resolvedPlanChecklist = computed<PlanChecklistItem[]>(() => {
   return [];
 });
 
+const resolvedPlanHeadline = computed(() => {
+  if (props.planSummary) {
+    return props.planSummary;
+  }
+
+  if (panelMode.value === "result") {
+    return "本轮任务已完成处理，可继续基于结果追问下一步。";
+  }
+
+  if (panelMode.value === "running") {
+    return "计划已提交执行，正在等待结果反馈。";
+  }
+
+  return "等待你描述处理目标，AI 会先生成可执行计划。";
+});
+
 const resolvedSuggestedNextPrompts = computed(() => {
   const source = props.suggestedNextPrompts.length
     ? props.suggestedNextPrompts
@@ -250,8 +266,23 @@ const composerTemplates = computed(() =>
 );
 
 function handleComposerModeChange(mode: PromptComposerMode) {
+  if (panelMode.value !== "result") {
+    manualComposerMode.value = null;
+    return;
+  }
+
   manualComposerMode.value = mode;
 }
+
+watch(
+  panelMode,
+  (nextMode) => {
+    if (nextMode !== "result") {
+      manualComposerMode.value = null;
+    }
+  },
+  { immediate: true },
+);
 
 function handleComposerSubmit() {
   emit("generate-plan");
@@ -322,7 +353,7 @@ function formatTime(value?: string) {
               <span>计划阶段</span>
               <small>{{ checklistStatusLabelMap[planCardStatus] }}</small>
             </div>
-            <h3>{{ planSummary || "等待你描述处理目标，AI 会先生成可执行计划。" }}</h3>
+            <h3>{{ resolvedPlanHeadline }}</h3>
 
             <ul v-if="resolvedPlanChecklist.length" class="ai-copilot-panel__checklist">
               <li v-for="item in resolvedPlanChecklist" :key="item.id">
