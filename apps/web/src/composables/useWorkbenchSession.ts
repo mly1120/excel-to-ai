@@ -325,6 +325,20 @@ export function useWorkbenchSession() {
 
   const planChecklist = computed<PlanChecklistItem[]>(() => {
     if (!planState.plan) {
+      if (taskState.taskResult) {
+        const summary = taskState.taskResult.summary;
+        const status: PlanChecklistStatus =
+          taskState.taskResult.status === "failed" ? "failed" : "done";
+
+        return [
+          {
+            id: "result-restored-summary",
+            label: `本轮已执行 ${summary.operationCount} 个处理动作，修改 ${summary.changedRows} 行，失败 ${summary.failedRows} 条。`,
+            status,
+          },
+        ];
+      }
+
       return [];
     }
 
